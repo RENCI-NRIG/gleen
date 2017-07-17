@@ -32,17 +32,19 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryBuildException;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.ARQConstants;
+import com.hp.hpl.jena.sparql.core.Substitute;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
 import com.hp.hpl.jena.sparql.engine.binding.BindingMap;
+import com.hp.hpl.jena.sparql.engine.binding.BindingHashMap;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterNullIterator;
 import com.hp.hpl.jena.sparql.engine.iterator.QueryIterPlainWrapper;
 import com.hp.hpl.jena.sparql.pfunction.PropFuncArg;
 import com.hp.hpl.jena.sparql.pfunction.PropFuncArgType;
 import com.hp.hpl.jena.sparql.pfunction.PropertyFunctionBase;
-import com.hp.hpl.jena.sparql.procedure.ProcLib;
+import com.hp.hpl.jena.sparql.util.IterLib;
 import com.hp.hpl.jena.sparql.util.Context;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
@@ -67,7 +69,7 @@ public class Subgraph extends PropertyFunctionBase
 	
 	public Subgraph()
 	{
-		super(PropFuncArgType.PF_ARG_SINGLE, PropFuncArgType.PF_ARG_LIST);
+		super(PropFuncArgType.PF_ARG_LIST, PropFuncArgType.PF_ARG_LIST);
 	}
 	
 	/* (non-Javadoc)
@@ -124,8 +126,8 @@ public class Subgraph extends PropertyFunctionBase
 		g = execCxt.getActiveGraph();
 		
 		// evaluate the subject and object given the binding
-		PropFuncArg evalArgSubject = argSubject.evalIfExists(binding);
-		PropFuncArg evalArgObject = argObject.evalIfExists(binding);
+		PropFuncArg evalArgSubject = Substitute.substitute(argSubject, binding);
+		//PropFuncArg evalArgObject = argObject.evalIfExists(binding);
 		
 		// get output variables
 		Var subVar = (Var)argObject.getArg(0);
@@ -136,17 +138,17 @@ public class Subgraph extends PropertyFunctionBase
 		if(binding.contains(subVar))
 		{
 			log.warn(this.getClass()+" output subject must be an unbound variable!");
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 		if(binding.contains(predVar))
 		{
 			log.warn(this.getClass()+" output predicate must be an unbound variable!");
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 		if(binding.contains(objVar))
 		{
 			log.warn(this.getClass()+" output object must be an unbound variable!");
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 				
 		// get input subject and object after bindings have been evaluated
@@ -157,7 +159,7 @@ public class Subgraph extends PropertyFunctionBase
 		if(sub.isLiteral()||obj.isLiteral())
 		{
 			log.warn(this.getClass()+" neither subject or object can be a literal!");
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 			
 		// get path expression
@@ -174,14 +176,14 @@ public class Subgraph extends PropertyFunctionBase
 		catch (ParseException e)
 		{
 			log.warn(this.getClass()+" parseException! "+e.getMessage());
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 		
 		// start node can have only one child
 		if(rootNode.jjtGetNumChildren()!=1)
 		{
 			log.warn(this.getClass()+" improperly formed AST!");
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 		SimpleNode firstOp = (SimpleNode)rootNode.jjtGetChild(0);
 		
@@ -253,7 +255,7 @@ public class Subgraph extends PropertyFunctionBase
 			Node property = currTriple.getPredicate();
 			Node object = currTriple.getObject();
 			
-			Binding tripleBinding = new BindingMap(binding);
+			BindingMap tripleBinding = new BindingHashMap(binding);
 			tripleBinding.add(subVar, subject);
 			tripleBinding.add(predVar, property);
 			tripleBinding.add(objVar, object);
@@ -624,9 +626,16 @@ public class Subgraph extends PropertyFunctionBase
 	 */
 	private Set<Path> processAlt(Set<Node> subjectNodes, SimpleNode node)
 	{
-		Set<Node> propertyNodes = getAltProperties(node);
+		//Set<Node> propertyNodes = getAltProperties(node);
 		Set<Path> matchingPaths = new HashSet<Path>();
 		
+		for (int i = 0; i < node.jjtGetNumChildren(); i++)
+		{
+			SimpleNode child = (SimpleNode)node.jjtGetChild(i);
+
+			matchingPaths.addAll(processParseTree(subjectNodes, child));
+		}
+		/*
 		for(Node subject : subjectNodes)
 		{
 			for(Node propertyNode : propertyNodes)
@@ -641,6 +650,7 @@ public class Subgraph extends PropertyFunctionBase
 				}
 			}
 		}
+		*/
 		return matchingPaths;
 	}
 	
@@ -653,9 +663,16 @@ public class Subgraph extends PropertyFunctionBase
 	 */
 	private Set<Path> processAltInv(Set<Node> objectNodes, SimpleNode node)
 	{
-		Set<Node> propertyNodes = getAltProperties(node);
+		//Set<Node> propertyNodes = getAltProperties(node);
 		Set<Path> matchingPaths = new HashSet<Path>();
 		
+		for (int i = 0; i < node.jjtGetNumChildren(); i++)
+		{
+			SimpleNode child = (SimpleNode)node.jjtGetChild(i);
+
+			matchingPaths.addAll(processParseTreeInv(objectNodes, child));
+		}
+		/*
 		for(Node object : objectNodes)
 		{
 			for(Node propertyNode : propertyNodes)
@@ -670,6 +687,7 @@ public class Subgraph extends PropertyFunctionBase
 				}
 			}
 		}
+		*/
 		return matchingPaths;
 	}
 	

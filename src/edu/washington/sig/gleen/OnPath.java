@@ -33,6 +33,7 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryBuildException;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.ARQConstants;
+import com.hp.hpl.jena.sparql.core.Substitute;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.ExecutionContext;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
@@ -42,7 +43,7 @@ import com.hp.hpl.jena.sparql.engine.iterator.QueryIterNullIterator;
 import com.hp.hpl.jena.sparql.pfunction.PropFuncArg;
 import com.hp.hpl.jena.sparql.pfunction.PropFuncArgType;
 import com.hp.hpl.jena.sparql.pfunction.PropertyFunctionBase;
-import com.hp.hpl.jena.sparql.procedure.ProcLib;
+import com.hp.hpl.jena.sparql.util.IterLib;
 import com.hp.hpl.jena.sparql.util.Context;
 import com.hp.hpl.jena.sparql.util.Symbol;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
@@ -61,9 +62,9 @@ import edu.washington.sig.gleen.util.ContextUtil;
  */
 public class OnPath extends PropertyFunctionBase
 {
-	Log log = LogFactory.getLog(this.getClass());
-	Graph g;
-	PrefixMapping queryPrefMap = null;
+	private Log log = LogFactory.getLog(this.getClass());
+	private Graph g;
+	private PrefixMapping queryPrefMap = null;
 	
 	public OnPath()
 	{
@@ -110,8 +111,8 @@ public class OnPath extends PropertyFunctionBase
 		g = execCxt.getActiveGraph();
 		
 		// evaluate the subject and object given the binding
-		PropFuncArg evalArgSubject = argSubject.evalIfExists(binding);
-		PropFuncArg evalArgObject = argObject.evalIfExists(binding);
+		PropFuncArg evalArgSubject = Substitute.substitute(argSubject, binding);
+		PropFuncArg evalArgObject = Substitute.substitute(argObject, binding);
 			
 		// make sure that first node in object list (the path expression) is a literal
 		Node pathExprNode = evalArgObject.getArg(0);
@@ -132,14 +133,14 @@ public class OnPath extends PropertyFunctionBase
 		catch (ParseException e)
 		{
 			log.warn(this.getClass()+" parseException! "+e.getMessage());
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 		
 		// start node can have only one child
 		if(rootNode.jjtGetNumChildren()!=1)
 		{
 			log.warn(this.getClass()+" improperly formed AST!");
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 		SimpleNode firstOp = (SimpleNode)rootNode.jjtGetChild(0);
 		
@@ -149,7 +150,7 @@ public class OnPath extends PropertyFunctionBase
 		if(sub.isLiteral()||obj.isLiteral())
 		{
 			log.warn(this.getClass()+" neither subject or object can be a literal!");
-			return ProcLib.noResults(execCxt);
+			return IterLib.noResults(execCxt);
 		}
 	
 		if(!sub.isVariable()&&obj.isVariable())
@@ -214,7 +215,7 @@ public class OnPath extends PropertyFunctionBase
 			else
 			{
 				log.warn(this.getClass()+" either subject or object must be a variable!");
-				return ProcLib.noResults(execCxt);
+				return IterLib.noResults(execCxt);
 			}
 		}
 		else
@@ -515,7 +516,6 @@ public class OnPath extends PropertyFunctionBase
 	
 	/**
 	 * Process alternation operator (logical OR)
-	 * This currently assumes alternation over simple rels
 	 * @param subjects the current set of subject resources
 	 * @param node the root of the parse (sub)tree for this operation
 	 * @return set of resources reachable via the path pattern represented
@@ -523,9 +523,16 @@ public class OnPath extends PropertyFunctionBase
 	 */
 	private Set<Node> processAlt(Set<Node> subjects, SimpleNode node)
 	{
-		Set<Node> relNodes = getAltRelNodes(node);
+		//Set<Node> relNodes = getAltRelNodes(node);
 		Set<Node> reachableNodes = new HashSet<Node>();
 		
+		for (int i = 0; i < node.jjtGetNumChildren(); i++)
+		{
+			SimpleNode child = (SimpleNode)node.jjtGetChild(i);
+
+			reachableNodes.addAll(processParseTree(subjects, child));
+		}
+		/*
 		for(Node subject : subjects)
 		{
 			for(Node relNode : relNodes)
@@ -539,6 +546,7 @@ public class OnPath extends PropertyFunctionBase
 				}
 			}
 		}
+		*/
 		return reachableNodes;
 	}
 	
@@ -551,9 +559,16 @@ public class OnPath extends PropertyFunctionBase
 	 */
 	private Set<Node> processAltInv(Set<Node> objects, SimpleNode node)
 	{
-		Set<Node> relNodes = getAltRelNodes(node);
+		//Set<Node> relNodes = getAltRelNodes(node);
 		Set<Node> reachableNodes = new HashSet<Node>();
 		
+		for (int i = 0; i < node.jjtGetNumChildren(); i++)
+		{
+			SimpleNode child = (SimpleNode)node.jjtGetChild(i);
+
+			reachableNodes.addAll(processParseTreeInv(objects, child));
+		}
+		/*
 		for(Node object : objects)
 		{
 			for(Node relNode : relNodes)
@@ -567,6 +582,7 @@ public class OnPath extends PropertyFunctionBase
 				}
 			}
 		}
+		*/
 		return reachableNodes;
 	}
 	

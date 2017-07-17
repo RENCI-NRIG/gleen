@@ -1,0 +1,116 @@
+/**
+ * Copyright 2008 University of Washington Structural Informatics Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+options
+{
+	MULTI=true;
+	STATIC=false; // could set this to true and use ReInit()
+}
+
+PARSER_BEGIN(PathExpression)
+package edu.washington.sig.gleen.javacc.grammar;
+public class PathExpression {
+
+  public static void main(String args[]) {
+    ByteArrayInputStream str = new ByteArrayInputStream(args[0].getBytes());
+    PathExpression t = new PathExpression(str);
+    try {
+      SimpleNode n = t.Start();
+      n.dump("");
+      System.out.println("Thank you.");
+    } catch (Exception e) {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+}
+PARSER_END(PathExpression)
+
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/">
+}
+
+TOKEN : 
+{
+  < LGROUP: "(" >
+| < RGROUP: ")" >
+| < CONCAT: "/" >
+| < ALT: "|" >
+| < STAR: "*" >
+| < PLUS: "+" >
+| < OPT: "?" >
+| < PROPERTY: "["(<PROPERTY_CHAR>)+"]" >
+| < #PROPERTY_CHAR: ~["[","]"] >
+}
+
+SimpleNode Start() : {}
+{
+  	Expr()
+  	{ return jjtThis; }
+}
+
+
+void Expr() #void : {}
+{
+  	BinaryOpExpr()
+}
+
+void SubExpr() #void : {}
+{
+  	<LGROUP> Expr() <RGROUP> | SimpTerm()
+}
+
+void BinaryOpExpr() #BinaryOpExpr(t!=null) : { Token t = null; }
+{
+	UnaryOpExpr() [((t=<CONCAT>) BinaryOpExpr())+ | ((t=<ALT>) BinaryOpExpr())+]
+	{
+		if(t!=null)
+		{
+			jjtThis.setOperatorType(t.kind);
+			jjtThis.setOperator(t.image);
+		}
+	}
+}
+
+void UnaryOpExpr() #UnaryOpExpr(t!=null) : { Token t = null; }
+{
+	SubExpr() [t=<STAR>|t=<PLUS>|t=<OPT>]
+	{
+		if(t!=null)
+		{
+			jjtThis.setOperatorType(t.kind);
+			jjtThis.setOperator(t.image);
+		}
+	}
+}
+
+void SimpTerm() : { Token t; }
+{
+	t = <PROPERTY>
+	{
+		jjtThis.setOperatorType(t.kind);
+    	jjtThis.setOperator(t.image);
+  	}
+}
