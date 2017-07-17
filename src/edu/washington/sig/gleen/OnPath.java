@@ -26,27 +26,28 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryBuildException;
-import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.sparql.ARQConstants;
-import com.hp.hpl.jena.sparql.core.Substitute;
-import com.hp.hpl.jena.sparql.core.Var;
-import com.hp.hpl.jena.sparql.engine.ExecutionContext;
-import com.hp.hpl.jena.sparql.engine.QueryIterator;
-import com.hp.hpl.jena.sparql.engine.binding.Binding;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIterExtendByVar;
-import com.hp.hpl.jena.sparql.engine.iterator.QueryIterNullIterator;
-import com.hp.hpl.jena.sparql.pfunction.PropFuncArg;
-import com.hp.hpl.jena.sparql.pfunction.PropFuncArgType;
-import com.hp.hpl.jena.sparql.pfunction.PropertyFunctionBase;
-import com.hp.hpl.jena.sparql.util.IterLib;
-import com.hp.hpl.jena.sparql.util.Context;
-import com.hp.hpl.jena.sparql.util.Symbol;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryBuildException;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.ARQConstants;
+import org.apache.jena.sparql.core.Substitute;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.engine.QueryIterator;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.iterator.QueryIterExtendByVar;
+import org.apache.jena.sparql.engine.iterator.QueryIterNullIterator;
+import org.apache.jena.sparql.pfunction.PropFuncArg;
+import org.apache.jena.sparql.pfunction.PropFuncArgType;
+import org.apache.jena.sparql.pfunction.PropertyFunctionBase;
+import org.apache.jena.sparql.util.IterLib;
+import org.apache.jena.sparql.util.Context;
+import org.apache.jena.sparql.util.Symbol;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 import edu.washington.sig.gleen.javacc.grammar.ParseException;
 import edu.washington.sig.gleen.javacc.grammar.PathExpression;
@@ -72,7 +73,7 @@ public class OnPath extends PropertyFunctionBase
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.pfunction.PropertyFunctionBase#build(com.hp.hpl.jena.sparql.pfunction.PropFuncArg, com.hp.hpl.jena.graph.Node, com.hp.hpl.jena.sparql.pfunction.PropFuncArg, com.hp.hpl.jena.sparql.engine.ExecutionContext)
+	 * @see org.apache.jena.sparql.pfunction.PropertyFunctionBase#build(org.apache.jena.sparql.pfunction.PropFuncArg, org.apache.jena.graph.Node, org.apache.jena.sparql.pfunction.PropFuncArg, org.apache.jena.sparql.engine.ExecutionContext)
 	 */
 	@Override
 	public void build(PropFuncArg argSubject, Node predicate,
@@ -101,7 +102,7 @@ public class OnPath extends PropertyFunctionBase
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.sparql.pfunction.PropertyFunctionBase#exec(com.hp.hpl.jena.sparql.engine.binding.Binding, com.hp.hpl.jena.sparql.pfunction.PropFuncArg, com.hp.hpl.jena.graph.Node, com.hp.hpl.jena.sparql.pfunction.PropFuncArg, com.hp.hpl.jena.sparql.engine.ExecutionContext)
+	 * @see org.apache.jena.sparql.pfunction.PropertyFunctionBase#exec(org.apache.jena.sparql.engine.binding.Binding, org.apache.jena.sparql.pfunction.PropFuncArg, org.apache.jena.graph.Node, org.apache.jena.sparql.pfunction.PropFuncArg, org.apache.jena.sparql.engine.ExecutionContext)
 	 */
 	@Override
 	public QueryIterator exec(Binding binding, PropFuncArg argSubject, Node predicate,
@@ -608,7 +609,7 @@ public class OnPath extends PropertyFunctionBase
 		
 		String expandedRelName = prefixMapping.expandPrefix(relText);
 
-		Node relNode = Node.createURI(expandedRelName);
+		Node relNode = NodeFactory.createURI(expandedRelName);
 		
 		return relNode;
 	}
@@ -642,7 +643,7 @@ public class OnPath extends PropertyFunctionBase
 						
 			String expandedRelName = prefixMapping.expandPrefix(relText);
 
-			Node relNode = Node.createURI(expandedRelName);
+			Node relNode = NodeFactory.createURI(expandedRelName);
 			altNodeList.add(relNode);
 		}
 		
@@ -662,7 +663,7 @@ public class OnPath extends PropertyFunctionBase
 
 			SimpleNode root = parser.Start();
 			
-			Queue nodeQueue = new LinkedList<SimpleNode>();
+			Queue<SimpleNode> nodeQueue = new LinkedList<SimpleNode>();
 			nodeQueue.offer(root);
 			SimpleNode currNode;
 			

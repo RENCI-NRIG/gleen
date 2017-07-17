@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.biodiag.util.HashMultiValueMap;
 
-import com.hp.hpl.jena.graph.Node;
+import org.apache.jena.graph.Node;
 
 import edu.washington.sig.gleen.path.Path;
 

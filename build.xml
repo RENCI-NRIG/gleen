@@ -16,7 +16,9 @@
 	<target name="compile" depends="init"
         description="compile the source " >
 		<!-- Compile the java code from ${src} into ${build} -->
-		<javac source="1.5" target="1.5" srcdir="${src}" destdir="${build}">
+		<javac source="1.6" target="1.6" includeantruntime="false" srcdir="${src}" destdir="${build}">
+                        <compilerarg value="-Xlint:deprecation"/>
+                        <compilerarg value="-Xlint:unchecked"/>
 			<classpath>
 				<fileset dir="lib">
 					<include name="**/*.jar" />

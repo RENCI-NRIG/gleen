@@ -16,11 +16,11 @@
 
 package edu.washington.sig.gleen.util;
 
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.shared.PrefixMapping;
-import com.hp.hpl.jena.sparql.util.Context;
-import com.hp.hpl.jena.sparql.util.Symbol;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.util.Context;
+import org.apache.jena.sparql.util.Symbol;
 
 /**
  * @author Todd Detwiler

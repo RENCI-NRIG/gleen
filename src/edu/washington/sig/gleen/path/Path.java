@@ -17,8 +17,8 @@ package edu.washington.sig.gleen.path;
 
 import java.util.ArrayList;
 
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Triple;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 
 /**
  * @author Todd Detwiler
