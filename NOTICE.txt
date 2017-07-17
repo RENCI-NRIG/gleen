@@ -1,0 +1,19 @@
+GLEEN regular path library for ARQ SparQL
+Copyright 2007-2009 University of Washington Structural Informatics Group
+
+This software is intended to integrate with the ARQ query engine for Jena.
+
+ARQ info is available at:
+http://jena.sourceforge.net/ARQ/
+The ARQ license can be found at:
+http://jena.sourceforge.net/ARQ/license.html
+
+Jena info is available at:
+http://jena.sourceforge.net/
+The Jena license can be found at:
+http://jena.sourceforge.net/license.html
+
+The GLEEN's path expression parser was generated using the JavaCC parser generator
+
+JavaCC info is available at:
+https://javacc.dev.java.net/

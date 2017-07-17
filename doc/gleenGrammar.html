@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+<p>/**<br />
+* Copyright 2008 University of Washington Structural Informatics Group<br />
+*<br />
+* Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);<br />
+* you may not use this file except in compliance with the License.<br />
+* You may obtain a copy of the License at<br />
+*<br />
+*   http://www.apache.org/licenses/LICENSE-2.0<br />
+*<br />
+* Unless required by applicable law or agreed to in writing, software<br />
+* distributed under the License is distributed on an &quot;AS IS&quot; BASIS,<br />
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<br />
+* See the License for the specific language governing permissions and<br />
+* limitations under the License.<br />
+*/</p>
+<p>/*------------------------------------------------------------------ <br/>
+ * GLEEN V0.6 PathExpression Grammar   <br/>
+ * Landon Todd Detwiler <br/>
+ * Structural Informatics Group  <br/>
+ * University of Washington <br/>
+ * 06/02/2008 <br/>
+*------------------------------------------------------------------*/</p>
+<p><strong>SKIP :</strong><br />
+&quot; &quot;<br />
+| &quot;\t&quot;<br />
+| &quot;\n&quot;<br />
+| &quot;\r&quot;<br />
+| &lt;&quot;//&quot; (~[&quot;\n&quot;,&quot;\r&quot;])* (&quot;\n&quot;|&quot;\r&quot;|&quot;\r\n&quot;)&gt;<br />
+| &lt;&quot;/*&quot; (~[&quot;*&quot;])* &quot;*&quot; (~[&quot;/&quot;] (~[&quot;*&quot;])* &quot;*&quot;)* &quot;/&quot;&gt;<br />
+}</p>
+<p><strong>TOKENS:</strong>  <br />
+  &lt; LGROUP&gt; ::= &quot;(&quot;<br />
+  &lt; RGROUP&gt; ::= &quot;)&quot;<br />
+  &lt; CONCAT&gt; ::= &quot;/&quot;<br />
+  &lt; ALT&gt; ::= &quot;|&quot;<br />
+  &lt; STAR&gt; ::= &quot;*&quot;<br />
+  &lt; PLUS&gt; ::=: &quot;+&quot;<br />
+  &lt; OPT&gt; ::= &quot;?&quot;<br />
+  &lt; PROPERTY&gt; ::= &quot;[&quot;(&lt;PROPERTY_CHAR&gt;)+&quot;]&quot;<br />
+  &lt; PROPERTY_CHAR&gt; ::= ~[&quot;[&quot;,&quot;]&quot;] <br />
+</p>
+<p><strong>PRODUCTIONS:</strong><br/>
+&lt;Start&gt; ::= &lt;Expr&gt;<br/>
+&lt;Expr&gt; ::= &lt;BinaryOpExpr&gt;<br/>
+&lt;BinaryOpExpr&gt; ::= &lt;UnaryOpExpr&gt; [(&lt;CONCAT&gt; &lt;BinaryOpExpr&gt;)+ | (&lt;ALT&gt; &lt;BinaryOpExpr&gt;)+]<br />
+&lt;UnaryOpExpr&gt; ::= &lt;SubExpr&gt; [&lt;STAR&gt; | &lt;PLUS&gt; | &lt;OPT&gt;]<br />
+&lt;SubExpr&gt; ::= &lt;LGROUP&gt; &lt;Expr&gt; &lt;RGROUP&gt; | &lt;SimpTerm&gt;<br />
+&lt;SimpTerm&gt; ::= &lt;PROPERTY&gt;<br />
+</p>
+</body>
+</html>

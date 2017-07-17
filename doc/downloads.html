@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GLEEN - Downloads</title>
+</head>
+
+<body>
+<h1 align="center"><img src="img/gleen_logo.png" alt="gleen_logo" width="717" height="296" /></h1>
+<h1 align="center">GLEEN Downloads</h1>
+</div>
+
+<h2>Current Release:</h2>
+<ul>
+  <li>Download <a href="http://sig.biostr.washington.edu/cgi-bin/counters/unicounter.pl?name=gleen_0.6.0&amp;deliver=/share/downloads/ontviews/gleen/GLEEN_v0.6.zip">GLEEN V0.6.0 beta</a>, for ARQ 2.2
+  <ul>
+        <li>Pre-built GLEEN library and source code included in archive</li>
+      <li>Apache 2.0 open source license</li>
+    </ul>
+  </li>
+  <li>GLEEN requires additional libraries (jena.jar, arq.jar, and commons-logging-1.1.jar) which are most likely already present in any Jena/ARQ application. However, if you need them, they can be downloaded from the following sites:
+      <ul>
+        <li><a href="http://jena.sourceforge.net/ARQ/">ARQ</a> (tested with version 2.2) [actually, the ARQ distribution includes the subsequent jars listed here]</li>
+        <li><a href="http://jena.sourceforge.net/">Jena</a> (tested with version distributed with ARQ 2.2)</li>
+        <li><a href="http://commons.apache.org/logging/">Commons Logging</a> (tested with version 1.1)</li>
+      </ul>
+  </li>
+</ul>
+<h2>Old Versions:</h2>
+<ul>
+  <li>GLEEN 
+    V0.5.1 beta
+    <ul>
+      <li>Download <a href="http://sig.biostr.washington.edu/cgi-bin/counters/unicounter.pl?name=gleen&amp;deliver=/share/downloads/ontviews/gleen/GLEEN_v0.5.1.zip">GLEEN V0.5.1 beta</a>, for ARQ 2.1 (zip file includes gleen.jar as well as the ANTLR runtime library 3.0.1)</li>
+      <li>GLEEN  requires additional libraries (jena.jar, arq.jar, and  commons-logging-1.1.jar) which are most likely already present in any  Jena/ARQ application. However, if you need them, they can be downloaded  from the following sites:
+        <ul>
+          <li><a href="http://jena.sourceforge.net/">Jena</a> (tested with version 2.5.3)</li>
+          <li><a href="http://jena.sourceforge.net/ARQ/">ARQ</a> (tested with version 2.1)</li>
+          <li><a href="http://commons.apache.org/logging/">Commons Logging</a> (tested with version 1.1)</li>
+        </ul>
+      </li>
+      <li>Notes regarding this version:
+        <ul>
+          <li>Uses ANTLR runtime (grammar parser was generated using ANTLR parser generator)</li>
+          <li>In ARQ version 2.0 and 2.1, the query prefixes were not accessible from a property function. The OnPath property function requires these prefix mappings to expand the prefixes in the path expression. GLEEN V0.5.1 included a work-around, but requires users of the  function to add a line of code, within their project, at the point were the QueryExecution is created.
+            The following utility function puts the query prefix mapping into the Context object.
+            <ul>
+              <li><span class="style1">edu.washington.sig.gleen.util.ContextUtil.setQueryPrefs(queryExecution, query);</span>
+                  <ul>
+                    <li>Add the above line immediately after the creation of the QueryExecution.</li>
+                    <li>This allows the OnPath property function to expand the prefixes in the path expression.</li>
+                    <li>If you do not add the above line, you must either use prefixes defined in the data source (and in the query or it won't execute) or you must use full URIs in your path expressio</li>
+                  </ul>
+              </li>
+            </ul>
+          </li>
+          <li>There are limits to the complexity of expressions allowed by the grammar. You are basically allowed two &quot;levels&quot; of nesting. In a &quot;level one&quot; expression you can apply the *, +, or ? operator to individual properties or alternations of properties and then concatenate these. In a &quot;level two&quot; expression you can apply the *, +, or ? operator to a level one expression or alternation of level one expressions. You cannot, for example, apply a + operator to a level two expression. This is a deliberate limitation of the complexity of allowed expression. </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+</body>
+</html>

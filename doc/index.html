@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SparQL - Regular Paths</title>
+<style type="text/css">
+<!--
+.style1 {color: #800040}
+-->
+</style>
+</head>
+
+<body>
+<h1 align="center"><img src="img/gleen_logo.png" alt="gleen_logo" width="717" height="296" /></h1>
+<h1 align="center">&nbsp;</h1>
+<h1 align="center">GLEEN:  Regular Paths for ARQ SparQL</h1>
+<h2>Contents:</h2>
+<ul>
+  <li><a href="#RegularPaths">Regular Paths in SparQL</a></li>
+  <li><a href="#ARQPropFunc">ARQ Property Functions</a></li>
+  <li><a href="#OnPath">OnPath Function</a></li>
+  <li><a href="#Subgraph">Subgraph Function</a></li>
+  <li><a href="#Comparison">Comparing OnPath and Subgraph</a></li>
+  <li><a href="#DownloadAndInstall">Download and Install</a></li>
+  <li><a href="#Changes">Changes</a></li>
+  <li><a href="#Issues">Known Issues</a></li>
+  <li><a href="#FutureWork">Future Work</a></li>
+  <li><a href="#Contact">Contact</a></li>
+  <li><a href="#Acknowledge">Acknowledgements</a></li>
+</ul>
+<h2><a name="RegularPaths" id="RegularPaths"></a>Regular Paths in SparQL:</h2>
+<p>What do we mean when we say &quot;regular paths&quot;? A regular path is a path, in a graph, were the ordered list of edges along that path satisfy a given  path expression. The path expression grammar we use is similar to common regular expression pattern languages, thus the term &quot;regular paths&quot;. An example of a path expression, in our syntax, is <span class="style1">[part]*</span> indicating paths with zero or more part edges. </p>
+<p>Perhaps it is a bit surprising that SparQL, the W3C recommended RDF query language,  lacks support for graph path traversal patterns. RDF is, after all, a graph data model. Path operations, such as transitive closure, seem a necessary construct of a graph query language. However, for design reasons, such functionality is not included in SparQL out of the box. </p>
+<p>The work presented here is a minimally invasive way of adding regular path support within ARQ, the SparQL query processor used by the Jena RDF framework. </p>
+<p>Note, some examples on this page use the prefix &quot;fma&quot;, a shorthand for the Foundational Model of Anatomy. This is used for illustrative purposes, but the GLEEN library is not restricted to a particular ontology.</p>
+<h2><a name="ARQPropFunc" id="ARQPropFunc"></a>ARQ Property Functions:</h2>
+<p>Ideally we would like to augment SparQL query processing, adding support for regular path processing,  without deviating from the SparQL specification.  The current SparQL specification does not provides constructs specifically for path expressions, but it does support some user defined functions. While the current specification appears to limit these functions to filter clauses, ARQ supports an additional extensible function type, property functions. GLEEN, a Java library which adds support for processing  regular path expressions, is implemented as ARQ property functions. </p>
+<p>ARQ property functions are syntactically allowed triple patterns in SparQL, though they are special in their processing. An ARQ property function looks like this:</p>
+<p class="style1">SubjectArgument PropertyFunction ObjectArgument .</p>
+<p>Such triples are identifiable as property functions based on the prefix used by the PropertyFunction argument. Such prefixes begin with &quot;java:&quot; and give the complete name, including package, of the Java class that will be used for custom process. For example,. a property function might look like <span class="style1">gleen:OnPath</span> where the prefix is defined by <span class="style1">PREFIX gleen:&lt;java:edu.washington.sig.gleen.&gt;</span>. The actual class used for processing, in this example, would be edu.washington.sig.gleen.OnPath. The SubjectArgument and ObjectArgument portions of the property function triple may be either unary values of lists of values, as we will see in subsequent sections.</p>
+<h2><a name="OnPath" id="OnPath"></a>OnPath Function:</h2>
+<p>The GLEEN OnPath function determines the set nodes in a graph which are related to the query node(s) by a given path expression. These results are bound to query variables for subsequent reuse. The OnPath function can, for example, be used to determine the nodes that stand in the transitive closure of a given property from a given node. For example an OnPath property function call which finds, transitively, those nodes in the Foundational Model of Anatomy (...insert ref...) which are &quot;regional_part&quot; of the Heart looks like this:</p>
+<p><span class="style1">fma:Heart gleen:OnPath ( &quot;[fma:regional_part]*&quot; ?heart_part ) .</span></p>
+<p>A properly formed call to OnPath contains a unary value in the SubjectArgument position and a 2 element list in the ObjectArgument position. The 2 element ObjectArgument must be a literal string representation of the path expression. This expression must be consistent with the GLEEN path expression grammer. The 2nd element of the ObjectArgument, as well as the single SubjectArgument can be unbound variables, bound variables, or node URIs, though they cannot both be unbound.</p>
+<p>GLEEN path expressions support  operators similar to those found in regular expression grammars, like '?' (zero or one), '*' (zero or more), '+' (one or more), '|' (alternation), and '/' (concatenation).  Square brackets are used as property delimiters while parenthesis are used as grouping operators. Here is another example of an OnPath call:</p>
+<p class="style1">fma:Heart gleen:OnPath ( &quot;[fma:regional_part]*/[fma:contains]&quot; ?heart_containment ) .</p>
+<p>The above example binds to the variable ?heart_containment, all resources that can be found on paths from fma:Heart by traversing zero or more fma:regional_part properties followed by a single fma:contains property (in the FMA fma:Blood_in_right_atrium, for example, is connected to the fma:Heart because it is contained in one of its parts, fma:Right_atrium). </p>
+<p>A more complex example, below, binds to the variable ?bar all resources identified as equivalent to example:foo (where classes in an equivalency list may themselves have equivalents, and so on).</p>
+<p class="style1">example:foo gleen:OnPath ( &quot;([owl:equivalentClass]/[owl:intersectionOf]/[rdf:rest]*/[rdf:first])+&quot; ?bar ) .</p>
+<p>For a more complete specification of the GLEEN path expression grammar, see <a href="gleenGrammar.html">GLEEN grammar spec</a>.</p>
+<h2><a name="Subgraph" id="Subgraph"></a>Subgraph Function:</h2>
+<p>While the OnPath function can be used to locate all of the resources in a graph that stand in a particular relationship pattern to a query resource, it simply returns the set of reachable resources. What it does not do is return the set of resources and properties traversed on paths to these results. This is precisely the purpose of the GLEEN Subgraph function. A call to the Subgraph function is as follows:</p>
+<p class="style1">(inputSubject pathExpression inputObject) gleen:Subgraph (outputSubject outputPredicate outputObject) .</p>
+<p>The list of arguments in the subject position of the above function call are the input arguments. Either the inputSubject or inputObject must be bound (or both). The pathExpression argument is  a string representation of the path pattern of interest. The list of arguments in the object position (outputSubject outputPredicate outputObject) must all be unbound variables. These will be bound for all triples on paths matching the pathExpression pattern. </p>
+<h2><a name="Comparison" id="Subgraph2"></a>Comparing OnPath and Subgraph Functions:</h2>
+<p>Consider the following sample graph:</p>
+<p><img src="img/Slide1.PNG" alt="sample_graph" width="813" height="512" /></p>
+<p>The OnPath function, for the path expression </p>
+<p>fma:Right_atrium gleen:OnPath &quot;([fma:regional_part]|[fma:constitutional_part])+/[fma:contains]&quot; ?containments</p>
+<p>would bind the following highlighted node &quot;Blood_in_right_atrium&quot; to the ?containments variable:</p>
+<p><img src="img/Slide2.PNG" alt="OnPath_sample" width="813" height="513" /></p>
+<p>The Subgraph function call</p>
+<p>(fma:Right_atrium &quot;([fma:regional_part]|[fma:constitutional_part])+/[fma:contains]&quot; ?obj) gleen:Subgraph (?a ?b ?c)</p>
+<p>would bind the variables ?a, ?b, and ?c as follows:</p>
+<table width="200" border="1">
+  <tr>
+    <td><div align="center"><strong>?a</strong></div></td>
+    <td><div align="center"><strong>?b</strong></div></td>
+    <td><div align="center"><strong>?c</strong></div></td>
+  </tr>
+  <tr>
+    <td>Right_atrium</td>
+    <td>constitutional_part</td>
+    <td>Cavity_of_right_atrium</td>
+  </tr>
+  <tr>
+    <td>Cavity_of_right_atrium</td>
+    <td>contains</td>
+    <td>Blood_in_right_atrium</td>
+  </tr>
+</table>
+<p>An illustration of the subgraph involved in this path expression is shown in this figure:</p>
+<p><img src="img/Slide3.PNG" alt="Subgraph_sample" width="812" height="520" /></p>
+<h2><a name="DownloadAndInstall" id="DownloadAndInstall"></a>Download and Install:</h2>
+<p>GLEEN can be dowloaded here: <a href="downloads.html">GLEEN downloads</a>.</p>
+<p>All that is required to make the GLEEN library  accessible by a functioning Jena/ARQ SparQL processor is to place the GLEEN jar (and its supporting libraries) on the classpath. Then, any query that will call the GLEEN property functions should include a prefix such as:</p>
+<p>PREFIX gleen:&lt;java:edu.washington.sig.gleen.&gt;</p>
+<p>Note also that GLEEN requires Java version 1.5 or newer.</p>
+<h2><a name="Changes" id="Issues2"></a>Changes:</h2>
+<ul>
+  <li>Previous GLEEN versions used the ANTLR parser generator to auto-generate parser code based on the grammar. To avoid potential version conflicts between the ANTLR runtime used by GLEEN and the ANTLR runtime used by other ARQ modules, ANTLR is no longer being used by GLEEN. JavaCC is now used to generate parser code.</li>
+  <li>As described above, a new property function gleen:Subgraph has been added to bind the entire subgraph covered by a path expression.</li>
+  <li>The gleen:Closure function has been removed as its functionality can be achieved using gleen:OnPath.</li>
+  <li>Previous GLEEN versions limited the degree of nesting allowed in a path expression. This limit has been removed. You are now free to write as untractable a query as you wish. :)</li>
+</ul>
+<h2><a name="Issues" id="Issues"></a>Known Issues:</h2>
+<ul>
+  <li>Currently this plugin only works for discovering resource nodes connected by given path patterns, it does not work for literals (see <a href="#FutureWork">future work</a>). </li>
+</ul>
+<h2><a name="FutureWork" id="FutureWork"></a>Future Work:</h2>
+<p>As mentioned in the limitations section, the current path functions only work for discovering resource nodes connected to other resource nodes by a particular path pattern, they cannot presently be used to discover nodes connected to literal values. It is possible that we may wish to extend GLEEN in the future to allow for this sort of pattern.</p>
+<p>One possible extension involves add conditionals to path expressions such that a path is bound only if it matches the pattern and has side branches matching given conditions. So, for example, if I have these triples in the graph:</p>
+<p>A -&gt; rdfs:subClassOf -&gt; B<br />
+B -&gt; owl:onProperty -&gt; fma:part<br />
+B -> owl:someValuesFrom -&gt; C<br />
+C -&gt; rdfs:subClassOf -&gt; D<br />
+D -&gt; owl:onProperty -&gt; fma:part<br />
+D -&gt; owl:someValuesFrom -&gt; E<br />
+C -&gt; rdfs:subClassOf -&gt; F<br />
+F -&gt; owl:onProperty -&gt; fma:contains<br />
+F -&gt; owl:someValuesFrom -&gt; G</p>
+<p>A path expression such as &quot;([rdfs:subClassOf]/[owl:someValuesFrom])+&quot; would lead us to {C, E, G}. However, what if we only wanted to follow paths like this when the property is &quot;fma:part&quot; (e.g. the intermediate nodes reachable by rdfs:subClassOf edges must have an owl:onProperty branch that connects to fma:part). To enable this sort of processing would require extension to the GLEEN grammar.</p>
+<p>Also, of course, users will guide future work through their input. This work is still in its prototype stage and feedback is encouraged.</p>
+<h2><a name="Contact" id="Contact"></a>Contact:</h2>
+<p>This library was developed by Todd Detwiler from the University of Washington Structural Informatics Group. Please direct questions or comments to <a href="mailto:&#100;&#101;&#116;&#064;&#117;&#046;&#119;&#097;&#115;&#104;&#105;&#110;&#103;&#116;&#111;&#110;&#046;&#101;&#100;&#117;">&#100;&#101;&#116;&#064;&#117;&#046;&#119;&#097;&#115;&#104;&#105;&#110;&#103;&#116;&#111;&#110;&#046;&#101;&#100;&#117;</a></p>
+<h2><a name="Acknowledge" id="Acknowledge"></a>Acknowledgements:</h2>
+<p>GLEEN is implemented as an extension library for ARQ, the SparQL query processor within the Jena RDF framework. The ARQ/Jena framework was heavily leveraged in this work. The path expression parser inside of GLEEN was generated using the JavaCC parser generator. This project was supported by NIH grant &quot;Realizing the potential of reference ontologies for the semantic web&quot; (1R01HL087706-01). </p>
+<p><a href="http://jena.sourceforge.net/"><img src="img/jena-logo-small.png" alt="Jena logo" width="105" height="62" />
+</a></p>
+</body>
+</html>
