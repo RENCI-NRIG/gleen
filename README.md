@@ -27,12 +27,12 @@ This new revision ports GLEEN forward to currently supported versions of JENA
 For this revision of GLEEN, simply check out the source, then ensure the
 following JARs (at a minimum) are copied into the "lib" directory:
 
-- commons-logging-1.1.1.jar
-- commons-logging-api-1.0.4.jar
-- jena-arq-2.11.0.jar
-- jena-core-2.11.0.jar
-- jena-iri-1.0.0.jar
-- jena-tdb-1.0.0.jar
+- commons-logging-1.2.jar
+- jena-arq-3.3.0.jar
+- jena-base-3.3.0.jar
+- jena-core-3.3.0.jar
+- jena-iri-3.3.0.jar
+- jena-tdb-3.3.0.jar
 
 Afterward, issue an "ant" - and the distribution should build, with the jar
 being placed in the "dist" directory.
