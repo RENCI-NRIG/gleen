@@ -4,9 +4,9 @@ The GLEEN library is a property function library for the Jena ARQ SparQL query e
 
 GLEEN was developed by:
 
-Todd Detwiler
-Structural Informatics Group
-University of Washington
+> Todd Detwiler
+> Structural Informatics Group
+> University of Washington
 
 GLEEN is currently licensed under the Apache License, version 2.0
 
