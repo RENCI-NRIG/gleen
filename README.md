@@ -20,6 +20,7 @@ the ORCA project (https://github.com/RENCI-NRIG/orca5), which makes use of GLEEN
 This new revision ports GLEEN forward to currently supported versions of JENA
 (http://jena.apache.org/).
 
+There are two branches in the code - one tied to Jena 2.11.0 and producing Gleen artifact with version 0.6.3-jena-2.11.0-SNAPSHOT. The other branch is called JENA_3_3_0 and produces an artifact with version 0.6.3-jena-3.3.0-SNAPSHOT. 
 ------
 
 ### Building
